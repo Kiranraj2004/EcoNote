@@ -7,11 +7,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/")
-public class Hello_World {
+public class Health_Checker {
     @GetMapping()
     public ResponseEntity<String> HealthChecker(){
-        return  ResponseEntity.ok("Hello world");
+        return  ResponseEntity.ok("Hello Kiran here ");
     }
-
-
 }
