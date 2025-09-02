@@ -33,7 +33,7 @@ public class User {
     @Indexed(unique = true)
     private String email;
 
-    @JsonIgnore
+
     private String password;
 
     private Set<String> roles = new HashSet<>();
