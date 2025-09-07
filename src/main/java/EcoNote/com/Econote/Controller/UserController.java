@@ -5,6 +5,8 @@ import EcoNote.com.Econote.Entity.User;
 import EcoNote.com.Econote.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -16,15 +18,14 @@ public class UserController {
     private UserService userService;
 
     // ----------------- CREATE USER -----------------
-    @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody User user) {
-        return userService.createUser(user);
-    }
+//    it will be in public api end points
 
     // ----------------- GET USER -----------------
-    @GetMapping("/{username}")
-    public ResponseEntity<?> getUser(@PathVariable String username) {
-        Optional<User> user = userService.getByName(username);
+    @GetMapping()
+    public ResponseEntity<?> getUserByName() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String userName = auth.getName();
+        Optional<User> user = userService.getByName(userName);
         if(user.isPresent()){
             return ResponseEntity.ok(user.get());
         }
@@ -38,20 +39,10 @@ public class UserController {
     }
 
     // ----------------- DELETE USER -----------------
-    @DeleteMapping("/{username}")
-    public ResponseEntity<?> deleteUser(@PathVariable String username) {
-        Optional<User> user = userService.getByName(username);
-        if(user.isPresent()){
-            return userService.deleteByName(username);
-        }
-        return ResponseEntity.status(404).body("User not found");
+    @DeleteMapping()
+    public ResponseEntity<?> deleteUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String userName = auth.getName();
+        return  userService.deleteByName(userName);
     }
-
-    // ----------------- LIST ALL USERS (ADMIN) -----------------
-    @GetMapping
-    public ResponseEntity<?> getAllUsers() {
-        return userService.getAll();
-    }
-
-
 }

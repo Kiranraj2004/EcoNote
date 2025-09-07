@@ -9,6 +9,8 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,8 +24,10 @@ public class JournalEntryController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/{userName}")
-    public ResponseEntity<?> createEntry(@RequestBody JournalEntry entry, @PathVariable String userName) {
+    @PostMapping()
+    public ResponseEntity<?> createEntry(@RequestBody JournalEntry entry) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String userName = auth.getName();
         return journalEntryService.createEntry(entry, userName);
     }
 
@@ -34,13 +38,11 @@ public class JournalEntryController {
                 : ResponseEntity.status(404).body("Journal entry not found.");
     }
 
-    @GetMapping
-    public List<JournalEntry> getAll() {
-        return journalEntryService.getAll();
-    }
 
-    @DeleteMapping("/{id}/user/{userName}")
-    public ResponseEntity<?> deleteById(@PathVariable ObjectId id, @PathVariable String userName) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteById(@PathVariable ObjectId id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String userName = auth.getName();
         return journalEntryService.deleteById(id, userName);
     }
 
@@ -55,8 +57,10 @@ public class JournalEntryController {
         return journalEntryService.update(id, entry);
     }
 
-    @GetMapping("/user/{userName}")
-    public ResponseEntity<?> getAllJournalEntriesOfUser(@PathVariable String userName) {
+    @GetMapping("/usersJournal")
+    public ResponseEntity<?> getAllJournalEntriesOfUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String userName = auth.getName();
         User user = userService.findByUserName(userName);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -20,8 +21,9 @@ import java.util.*;
 @Component
 public class UserService {
     @Autowired
-    public UserRepository userRepository;
-    public JournalEntryRepository journalEntryRepository;
+    private UserRepository userRepository;
+    @Autowired
+    private   JournalEntryService journalEntryService;
 
     private final  PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
 
@@ -57,7 +59,7 @@ public class UserService {
 
         // Set default role
         Set<String> roles = new HashSet<>();
-        roles.add("user");
+        roles.add("User");
         user.setRoles(roles);
 
         // Save user
@@ -84,16 +86,17 @@ public class UserService {
     }
 
     // ---------------- DELETE USER ----------------
+    @Transactional
     public ResponseEntity<?> deleteByName(String username) {
         User user = userRepository.findByUsername(username);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
 
-//        // Delete all journal entries linked to the user
-//        if (user.getJournalEntries() != null && !user.getJournalEntries().isEmpty()) {
-//            journalEntryRepository.deleteAll(user.getJournalEntries());
-//        }
+        // Delete all journal entries linked to the user
+        if (user.getJournalEntries() != null && !user.getJournalEntries().isEmpty()) {
+            journalEntryService.deleteAll(user.getJournalEntries());
+        }
 
         userRepository.deleteById(user.getId());
         return ResponseEntity.ok("User and their journal entries deleted successfully");
@@ -114,18 +117,15 @@ public class UserService {
         return ResponseEntity.ok(userRepository.findAll());
     }
 
+
+
     // ---------------- CREATE ADMIN ----------------
-    public ResponseEntity<?> createAdmin(User entry) {
-        User existingUser = userRepository.findByUsername(entry.getUsername());
+    public ResponseEntity<?> createAdmin(String userName) {
+        User existingUser = userRepository.findByUsername(userName);
 
         if (existingUser == null) {
-            // Create new user with both USER and ADMIN roles
-            entry.setPassword(passwordEncoder.encode(entry.getPassword()));
-            entry.setRoles(new HashSet<>(Arrays.asList("User", "Admin")));
-            User savedAdmin = userRepository.save(entry);
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedAdmin);
+            return new ResponseEntity<>("User not found" ,HttpStatus.FOUND);
         }
-
         // Add ADMIN role if missing
         Set<String> roles = existingUser.getRoles();
         if (!roles.contains("Admin")) {

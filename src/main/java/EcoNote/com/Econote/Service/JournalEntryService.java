@@ -118,6 +118,7 @@ public class JournalEntryService {
      */
     @Transactional
     public void deleteAll(List<JournalEntry> list) {
+
         for (JournalEntry journal : list) {
             journalEntryRepository.deleteById(journal.getId());
         }
